@@ -90,3 +90,19 @@ __proto__: Object
 
 `ReactDOM.render(element, document.getElementById("root"));` 를 보면 ReactDOM은 해당 react element를 실제 DOM의 어느 부분에 rendering할지를 결정합니다.
 
+## Custom Configs
+
+create-react-app은 configuration을 자동으로 설치해줍니다. 그런데, 실력있는 개발자들의 경우 이 configuration을 customize하고 싶어합니다. 예를 들어, webpack configuration 설정을 바꾸고 싶다고 가정해봅시다. 이때 eject 명령어를 활용합니다. eject 명령어를 쓰면 해당 react 프로젝트에 달려있는 모든 dependencies를 확인할 수 있습니다. (하지만 이것은 숙달된 개발자가 하는 영역이므로 지금은 다루지 않습니다.)
+
+```powershell
+PS C:\Users\user\Desktop\Project\react-app> npm run eject
+
+> react-app@0.1.0 eject C:\Users\user\Desktop\Project\react-app
+> react-scripts eject
+
+NOTE: Create React App 2+ supports TypeScript, Sass, CSS Modules and more without ejecting: https://reactjs.org/blog/2018/10/01/create-react-app-v2.html
+
+? Are you sure you want to eject? This action is permanent. No
+Close one! Eject aborted.
+```
+
