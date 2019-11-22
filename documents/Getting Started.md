@@ -54,3 +54,39 @@ export default App;
 자세히 보면 html 코드처럼 보이는 것이 있으나 이는 html이 아닙니다. 이는 자바스크립트 XML이며 JSX라 불립니다. JSX는 UI가 어떻게 보이는지를 결정합니다.
 
 위 코드가 동작하기 위해서는 이를 Babel이라는 compiler에게 전달합니다. Babel은 이 JSX syntax를 브라우저가 이해할 수 있는 자바스크립트 코드로 변경합니다. 그 다음, 브라우저가 컴파일된 자바스크립트 코드를 화면에 뿌리면 유저는 그 화면을 보게 되는 것이 React의 작동원리입니다.
+
+## Hello World
+
+src 폴더에 있는 파일들을 모두 지우고 index.js 파일을 생성하겠습니다. 그리고 아래와 같이 코드를 작성합니다.
+
+```jsx
+import React from "react";
+import ReactDOM from "react-dom";
+
+const element = <h1>Hello!</h1>;
+
+ReactDOM.render(element, document.getElementById("root"));
+
+console.log(element);
+```
+
+여기서 작성된 React는 사용되지 않는 것처럼 보이지만 Babel에서 이를 compile하면서 활용하기 때문에 React를 작성할 때는 반드시 입력해주어야 합니다. 이렇게 코드를 작성하고 실행해보면 콘솔 창에 Object가 뜨는 것을 확인하실 수 있습니다. 그 안을 자세히 뜯어보면
+
+```bash
+Object
+$$typeof: Symbol(react.element)
+key: null
+props: {children: "Hello!"}
+ref: null
+type: "h1"
+_owner: null
+_store: {validated: false}
+_self: null
+_source: {fileName: "C:\Users\user\Desktop\Project\react-app\src\index.js", lineNumber: 4}
+__proto__: Object
+```
+
+이렇게 구성되어 있는 것을 확인하실 수 있습니다. typeof를 보면 react.element라 되어 있는데 이는 Virtual DOM의 일부분 입니다. 따라서 이 객체의 state가 변경될 때마다 react는 새로운 react 요소를 가지게 됩니다. 그러면 react는 이 요소를 변경전의 요소와 비교하고 변경된 부분을 실제 DOM에 반영합니다.
+
+`ReactDOM.render(element, document.getElementById("root"));` 를 보면 ReactDOM은 해당 react element를 실제 DOM의 어느 부분에 rendering할지를 결정합니다.
+
