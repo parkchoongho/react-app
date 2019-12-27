@@ -52,3 +52,27 @@ class Counter extends Component {
 export default Counter;
 ```
 
+### Binding Event Handlers
+
+obj.method()로 바로 부르는 것은 this에 대한 접근권한을 가집니다. 하지만 특정 event에 function을 정의해놓고 그 event가 발생할 때 함수를 호출하는 것은 this에 대한 접근권한을 제한합니다. 이럴 때는 **bind method**이나 **arrow function**을 활용합니다.
+
+```javascript
+class Counter extends Component {
+  state = {
+    count: 0
+    // tags: ["tag1", "tag2", "tag3"]
+  };
+
+  // constructor() {
+  //   super();
+  //   this.handleIncrement = this.handleIncrement.bind(this);
+  // }
+
+  handleIncrement = () => {
+    console.log("Increment Clicked!");
+    console.log(this);
+  };
+
+}
+```
+
