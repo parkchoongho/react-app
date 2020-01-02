@@ -284,3 +284,78 @@ class App extends Component {
 export default App;
 ```
 
+### Updating Phase
+
+일반적인 업데이트를 뜻한다.
+
+- render()
+- componentDidUpdate()
+
+State를 바꾸면 component를 호출하고 그 다음 render를 호출한 다음에, 업데이트가 완료되면 componentDidUpdate()가 실행된다.
+
+counter.jsx
+
+```jsx
+import React, { Component } from "react";
+
+class Counter extends Component {
+  componentDidUpdate(prevProps, prevState) {
+    console.log("prevProps: ", prevProps);
+    console.log("prevState: ", prevState);
+  }
+
+  render() {
+    const {
+      children,
+      onIncrement,
+      counter,
+      onDecrement,
+      onDelete
+    } = this.props;
+    return (
+      <div>
+        {children}
+        <span className={this.getBadgeClasses()}>{this.formatCount()}</span>
+        <button
+          onClick={() => {
+            onIncrement(counter);
+          }}
+          className="btn btn-secondary btn-sm"
+        >
+          Increment
+        </button>
+        <button
+          onClick={() => {
+            onDecrement(counter);
+          }}
+          className="btn btn-danger btn-sm m-2"
+        >
+          Decrement
+        </button>
+        <button
+          onClick={() => {
+            onDelete(counter.id);
+          }}
+          className="btn btn-danger btn-sm m-2"
+        >
+          Delete
+        </button>
+      </div>
+    );
+  }
+
+  getBadgeClasses() {
+    let classes = "badge m-2 badge-";
+    classes += this.props.counter.value === 0 ? "warning" : "primary";
+    return classes;
+  }
+
+  formatCount() {
+    const { value } = this.props.counter;
+    return value === 0 ? "Zero" : value;
+  }
+}
+
+export default Counter;
+```
+

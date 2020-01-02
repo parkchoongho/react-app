@@ -1,6 +1,11 @@
 import React, { Component } from "react";
 
 class Counter extends Component {
+  componentDidUpdate(prevProps, prevState) {
+    console.log("prevProps: ", prevProps);
+    console.log("prevState: ", prevState);
+  }
+
   render() {
     const {
       children,
