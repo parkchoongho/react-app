@@ -33,6 +33,7 @@ class Counter extends Component {
         {
           /* {this.state.tags.length === 0 && "Please create a new tag!"} */
           // this.renderTags()
+          this.props.children
         }
         <span className={this.getBadgeClasses()}>{this.formatCount()}</span>
         <button
