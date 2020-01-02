@@ -167,3 +167,11 @@ export default NavBar;
 ```
 
 함수에서는 this keyword가 없습니다. 따라서 그대로 props로 받습니다. 그런데 받는 parameter를 destructing을 통해 받아서, 데이터마다 props.을 입력해야되는 것을 방지합니다.
+
+### Lifecycle Hooks
+
+Our components go through a few phases during their lifecycle. The first phase is **mounting phase**, and this is when an instance of a component is created and inserted into the DOM. In the **mounting phase** we have 3 lifecycle hooks, **constructor, render and componentDidMount**.
+
+The second lifecycle is the **update phase**, and this happens when the state, or the props of a component get changed. In this phase we have two lifecycle hooks, **render and componentDidUpdate.**
+
+And the last phase is the **unmounting phase**, and this is when a component is removed from the DOM such as when we delete the counter. In this phase we have one lifecycle hook, **componentWillUnmount.**
