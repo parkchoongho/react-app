@@ -300,3 +300,6 @@ class Counter extends Component {
 export default Counter;
 ```
 
+### Props vs State
+
+**Props** includes that we give to a component, wheras **State** includes data that is local or private to that component. So other component can not access that state. And **Props** is **Read Only**. 
