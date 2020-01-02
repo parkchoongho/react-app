@@ -359,3 +359,83 @@ class Counter extends Component {
 export default Counter;
 ```
 
+### Unmouting Phase
+
+Component가 죽는 것을 의미한다. (페이지를 바꿀 때, state를 사용해 component를 교체 등등)
+
+- componentWillUnmount
+
+component가 사라질 때, 호출된다.
+
+counter.jsx
+
+```jsx
+import React, { Component } from "react";
+
+class Counter extends Component {
+  componentDidUpdate(prevProps, prevState) {
+    console.log("prevProps: ", prevProps);
+    console.log("prevState: ", prevState);
+  }
+
+  componentWillUnmount() {
+    console.log("Counter - Unmount");
+  }
+
+  render() {
+    const {
+      children,
+      onIncrement,
+      counter,
+      onDecrement,
+      onDelete
+    } = this.props;
+    return (
+      <div>
+        {children}
+        <span className={this.getBadgeClasses()}>{this.formatCount()}</span>
+        <button
+          onClick={() => {
+            onIncrement(counter);
+          }}
+          className="btn btn-secondary btn-sm"
+        >
+          Increment
+        </button>
+        <button
+          onClick={() => {
+            onDecrement(counter);
+          }}
+          className="btn btn-danger btn-sm m-2"
+        >
+          Decrement
+        </button>
+        <button
+          onClick={() => {
+            onDelete(counter.id);
+          }}
+          className="btn btn-danger btn-sm m-2"
+        >
+          Delete
+        </button>
+      </div>
+    );
+  }
+
+  getBadgeClasses() {
+    let classes = "badge m-2 badge-";
+    classes += this.props.counter.value === 0 ? "warning" : "primary";
+    return classes;
+  }
+
+  formatCount() {
+    const { value } = this.props.counter;
+    return value === 0 ? "Zero" : value;
+  }
+}
+
+export default Counter;
+```
+
+참고자료: http://projects.wojtekmaj.pl/react-lifecycle-methods-diagram/
+
