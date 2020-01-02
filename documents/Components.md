@@ -594,3 +594,165 @@ class Counter extends Component {
 export default Counter;
 ```
 
+### Single Source of Truth
+
+counters.jsx
+
+```jsx
+import React, { Component } from "react";
+import Counter from "./counter";
+
+class Counters extends Component {
+  state = {
+    counters: [
+      {
+        id: 1,
+        value: 4
+      },
+      {
+        id: 2,
+        value: 0
+      },
+      {
+        id: 3,
+        value: 0
+      },
+      {
+        id: 4,
+        value: 0
+      }
+    ]
+  };
+
+  handleReset = () => {
+    const counters = this.state.counters.map(counter => {
+      counter.value = 0;
+      return counter;
+    });
+    this.setState({ counters });
+  };
+
+  handleDelete = counterId => {
+    const counters = this.state.counters.filter(
+      counter => counter.id !== counterId
+    );
+    this.setState({ counters });
+  };
+
+  render() {
+    return (
+      <React.Fragment>
+        <button
+          onClick={() => {
+            this.handleReset();
+          }}
+          className="btn btn-primary btn-sm m-2"
+        >
+          Reset
+        </button>
+        {this.state.counters.map(counter => (
+          <Counter
+            key={counter.id}
+            onDelete={this.handleDelete}
+            counter={counter}
+          >
+            <h4>Counter #{counter.id}</h4>
+          </Counter>
+        ))}
+      </React.Fragment>
+    );
+  }
+}
+
+export default Counters;
+```
+
+counter.jsx
+
+```jsx
+import React, { Component } from "react";
+
+class Counter extends Component {
+  state = {
+    value: this.props.counter.value
+    // tags: ["tag1", "tag2", "tag3"]
+  };
+
+  // constructor() {
+  //   super();
+  //   this.handleIncrement = this.handleIncrement.bind(this);
+  // }
+
+  handleIncrement = () => {
+    this.setState({ value: this.state.value + 1 });
+  };
+
+  handleDecrement = () => {
+    this.setState({ value: this.state.value - 1 });
+  };
+
+  // renderTags() {
+  //   if (this.state.tags.length === 0) return <p>There are no Tags!</p>;
+
+  //   return (
+  //     <ul>
+  //       {this.state.tags.map(tag => (
+  //         <li key={tag}>{tag}</li>
+  //       ))}
+  //     </ul>
+  //   );
+  // }
+
+  render() {
+    return (
+      <div>
+        {
+          /* {this.state.tags.length === 0 && "Please create a new tag!"} */
+          // this.renderTags()
+          this.props.children
+        }
+        <span className={this.getBadgeClasses()}>{this.formatCount()}</span>
+        <button
+          onClick={() => {
+            this.handleIncrement();
+          }}
+          className="btn btn-secondary btn-sm"
+        >
+          Increment
+        </button>
+        <button
+          onClick={() => {
+            this.handleDecrement();
+          }}
+          className="btn btn-danger btn-sm m-2"
+        >
+          Decrement
+        </button>
+        <button
+          onClick={() => {
+            this.props.onDelete(this.props.counter.id);
+          }}
+          className="btn btn-danger btn-sm m-2"
+        >
+          Delete
+        </button>
+      </div>
+    );
+  }
+
+  getBadgeClasses() {
+    let classes = "badge m-2 badge-";
+    classes += this.state.value === 0 ? "warning" : "primary";
+    return classes;
+  }
+
+  formatCount() {
+    const { value } = this.state;
+    return value === 0 ? "Zero" : value;
+  }
+}
+
+export default Counter;
+```
+
+counters.jsx에서 Reset버튼을 추가했지만 한번 렌더링되는 Counter.jsx로 인해 변경된 사항이 저장되지 않습니다. Single Source of Truth 법칙에 의해 Local하게 저장되어있는 데이터를 제거해야 Reset버튼이 올바르게 작동할 수 있습니다.
