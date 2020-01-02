@@ -175,3 +175,112 @@ Our components go through a few phases during their lifecycle. The first phase i
 The second lifecycle is the **update phase**, and this happens when the state, or the props of a component get changed. In this phase we have two lifecycle hooks, **render and componentDidUpdate.**
 
 And the last phase is the **unmounting phase**, and this is when a component is removed from the DOM such as when we delete the counter. In this phase we have one lifecycle hook, **componentWillUnmount.**
+
+### Mounting Phase
+
+Mounting은 태어나는 것과 같습니다.
+
+- constructor()
+
+react에서 온 것이 아니며, JavaScript에서 class를 만들 때 호출되는 것 method.
+
+- render()
+
+constructor()가 호출되고 그 다음 render()가 호출됩니다. 그리고 하나의 component가 render 되면 그 하위단에 있는 모든 components들도 render 됩니다.
+
+- componentDidMount()
+
+component가 render 될 때, 이 component가 처음 render 되었다고 알려줍니다.
+
+App.js
+
+```jsx
+import React, { Component } from "react";
+import NavBar from "./components/navbar";
+import Counters from "./components/counters";
+
+class App extends Component {
+  state = {
+    counters: [
+      {
+        id: 1,
+        value: 4
+      },
+      {
+        id: 2,
+        value: 0
+      },
+      {
+        id: 3,
+        value: 0
+      },
+      {
+        id: 4,
+        value: 0
+      }
+    ]
+  };
+
+  constructor(props) {
+    super(props);
+    console.log("App - Constructor", this.props);
+  }
+
+  componentDidMount() {
+    // Ajax Call
+    console.log("App - Mounted");
+  }
+
+  handleReset = () => {
+    const counters = this.state.counters.map(counter => {
+      counter.value = 0;
+      return counter;
+    });
+    this.setState({ counters });
+  };
+
+  handleDelete = counterId => {
+    const counters = this.state.counters.filter(
+      counter => counter.id !== counterId
+    );
+    this.setState({ counters });
+  };
+
+  handleIncrement = counter => {
+    const counters = [...this.state.counters];
+    const index = counters.indexOf(counter);
+    counters[index].value += 1;
+    this.setState({ counters });
+  };
+
+  handleDecrement = counter => {
+    const counters = [...this.state.counters];
+    const index = counters.indexOf(counter);
+    counters[index].value -= 1;
+    this.setState({ counters });
+  };
+
+  render() {
+    console.log("App - Rendered");
+    return (
+      <React.Fragment>
+        <NavBar
+          totalCounters={this.state.counters.filter(c => c.value > 0).length}
+        />
+        <main className="container">
+          <Counters
+            onReset={this.handleReset}
+            onDelete={this.handleDelete}
+            onIncrement={this.handleIncrement}
+            onDecrement={this.handleDecrement}
+            counters={this.state.counters}
+          />
+        </main>
+      </React.Fragment>
+    );
+  }
+}
+
+export default App;
+```
+
