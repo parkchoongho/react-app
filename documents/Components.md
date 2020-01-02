@@ -303,3 +303,149 @@ export default Counter;
 ### Props vs State
 
 **Props** includes that we give to a component, wheras **State** includes data that is local or private to that component. So other component can not access that state. And **Props** is **Read Only**. 
+
+### Raising and Handling Events
+
+The component that owns a piece of the state, should be the one modifying it.
+
+counters.jsx
+
+```jsx
+import React, { Component } from "react";
+import Counter from "./counter";
+
+class Counters extends Component {
+  state = {
+    counters: [
+      {
+        id: 1,
+        value: 4
+      },
+      {
+        id: 2,
+        value: 0
+      },
+      {
+        id: 3,
+        value: 0
+      },
+      {
+        id: 4,
+        value: 0
+      }
+    ]
+  };
+
+  handleDelete = () => {
+    console.log("Event Handler Called!!");
+  };
+
+  render() {
+    return (
+      <React.Fragment>
+        {this.state.counters.map(counter => (
+          <Counter
+            key={counter.id}
+            value={counter.value}
+            onDelete={this.handleDelete}
+          >
+            <h4>Counter #{counter.id}</h4>
+          </Counter>
+        ))}
+      </React.Fragment>
+    );
+  }
+}
+
+export default Counters;
+```
+
+counter.jsx
+
+```jsx
+import React, { Component } from "react";
+
+class Counter extends Component {
+  state = {
+    value: this.props.value
+    // tags: ["tag1", "tag2", "tag3"]
+  };
+
+  // constructor() {
+  //   super();
+  //   this.handleIncrement = this.handleIncrement.bind(this);
+  // }
+
+  handleIncrement = () => {
+    this.setState({ value: this.state.value + 1 });
+  };
+
+  handleDecrement = () => {
+    this.setState({ value: this.state.value - 1 });
+  };
+
+  // renderTags() {
+  //   if (this.state.tags.length === 0) return <p>There are no Tags!</p>;
+
+  //   return (
+  //     <ul>
+  //       {this.state.tags.map(tag => (
+  //         <li key={tag}>{tag}</li>
+  //       ))}
+  //     </ul>
+  //   );
+  // }
+
+  render() {
+    console.log(this.props);
+    return (
+      <div>
+        {
+          /* {this.state.tags.length === 0 && "Please create a new tag!"} */
+          // this.renderTags()
+          this.props.children
+        }
+        <span className={this.getBadgeClasses()}>{this.formatCount()}</span>
+        <button
+          onClick={() => {
+            this.handleIncrement();
+          }}
+          className="btn btn-secondary btn-sm"
+        >
+          Increment
+        </button>
+        <button
+          onClick={() => {
+            this.handleDecrement();
+          }}
+          className="btn btn-danger btn-sm m-2"
+        >
+          Decrement
+        </button>
+        <button
+          onClick={() => {
+            this.props.onDelete();
+          }}
+          className="btn btn-danger btn-sm m-2"
+        >
+          Delete
+        </button>
+      </div>
+    );
+  }
+
+  getBadgeClasses() {
+    let classes = "badge m-2 badge-";
+    classes += this.state.value === 0 ? "warning" : "primary";
+    return classes;
+  }
+
+  formatCount() {
+    const { value } = this.state;
+    return value === 0 ? "Zero" : value;
+  }
+}
+
+export default Counter;
+```
+
