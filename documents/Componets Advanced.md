@@ -130,7 +130,7 @@ class NavBar extends Component {
     return (
       <nav className="navbar navbar-light bg-light">
         <a className="navbar-brand" href="#">
-          Navbar{" "}
+          Navbar
           <span className="badge badge-pill badge-secondary">
             {this.props.totalCounters}
           </span>
@@ -143,3 +143,27 @@ class NavBar extends Component {
 export default NavBar;
 ```
 
+### Stateless Functional Components
+
+navbar.jsx를 보면 render method만 보이는 것을 확인할 수 있습니다. 다른 eventhandler와 같은 method를 찾아볼 수 없습니다. 이런 경우 우리는 class component가 아닌, stateless functional component를 사용할 수 있습니다.
+
+```jsx
+import React from "react";
+
+const NavBar = ({ totalCounters }) => {
+  return (
+    <nav className="navbar navbar-light bg-light">
+      <a className="navbar-brand" href="#">
+        Navbar
+        <span className="badge badge-pill badge-secondary">
+          {totalCounters}
+        </span>
+      </a>
+    </nav>
+  );
+};
+
+export default NavBar;
+```
+
+함수에서는 this keyword가 없습니다. 따라서 그대로 props로 받습니다. 그런데 받는 parameter를 destructing을 통해 받아서, 데이터마다 props.을 입력해야되는 것을 방지합니다.
