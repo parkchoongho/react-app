@@ -2001,3 +2001,89 @@ class TableHeader extends Component {
 export default TableHeader;
 ```
 
+### Sorting - Extracting TableBody
+
+tableBody.jsx
+
+```jsx
+import React, { Component } from "react";
+import _ from "lodash";
+
+class TableBody extends Component {
+  renderCell = (item, column) => {
+    if (column.content) return column.content(item);
+    return _.get(item, column.path);
+  };
+
+  createKey = (item, column) => {
+    return item._id + (column.path || column.key);
+  };
+
+  render() {
+    const { data, columns } = this.props;
+    return (
+      <tbody>
+        {data.map(item => (
+          <tr key={item._id}>
+            {columns.map(column => (
+              <td key={this.createKey(item, column)}>
+                {this.renderCell(item, column)}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    );
+  }
+}
+
+export default TableBody;
+```
+
+moviesTable.jsx
+
+```jsx
+import React, { Component } from "react";
+import TableHeader from "./common/tableHeader";
+import TableBody from "./common/tableBody";
+
+class MoviesTable extends Component {
+  columns = [
+    { path: "title", label: "Title" },
+    { path: "genre.name", label: "Genre" },
+    { path: "numberInStock", label: "Stock" },
+    { path: "dailyRentalRate", label: "Rate" },
+    { key: "like" },
+    {
+      key: "delete",
+      content: movie => (
+        <button
+          onClick={() => {
+            this.props.onDelete(movie._id);
+          }}
+          className="btn btn-danger btn-sm"
+        >
+          Delete
+        </button>
+      )
+    }
+  ];
+
+  render() {
+    const { movies, sortColumn, onSort } = this.props;
+    return (
+      <table className="table">
+        <TableHeader
+          columns={this.columns}
+          sortColumn={sortColumn}
+          onSort={onSort}
+        />
+        <TableBody data={movies} columns={this.columns} />
+      </table>
+    );
+  }
+}
+
+export default MoviesTable;
+```
+
