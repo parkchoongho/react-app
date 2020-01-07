@@ -2141,3 +2141,187 @@ class TableHeader extends Component {
 export default TableHeader;
 ```
 
+### Sorting - Extracting a Table
+
+moviesTable.jsx
+
+```jsx
+import React, { Component } from "react";
+import Table from "./common/table";
+
+class MoviesTable extends Component {
+  columns = [
+    { path: "title", label: "Title" },
+    { path: "genre.name", label: "Genre" },
+    { path: "numberInStock", label: "Stock" },
+    { path: "dailyRentalRate", label: "Rate" },
+    { key: "like" },
+    {
+      key: "delete",
+      content: movie => (
+        <button
+          onClick={() => {
+            this.props.onDelete(movie._id);
+          }}
+          className="btn btn-danger btn-sm"
+        >
+          Delete
+        </button>
+      )
+    }
+  ];
+
+  render() {
+    const { movies, sortColumn, onSort } = this.props;
+    return (
+      <Table
+        columns={this.columns}
+        sortColumn={sortColumn}
+        data={movies}
+        onSort={onSort}
+      />
+    );
+  }
+}
+
+export default MoviesTable;
+```
+
+table.jsx
+
+```jsx
+import React from "react";
+import TableHeader from "./tableHeader";
+import TableBody from "./tableBody";
+
+const Table = props => {
+  const { columns, sortColumn, onSort, data } = props;
+
+  return (
+    <table className="table">
+      <TableHeader columns={columns} sortColumn={sortColumn} onSort={onSort} />
+      <TableBody data={data} columns={columns} />
+    </table>
+  );
+};
+
+export default Table;
+```
+
+### Sorting - Extracting a Method
+
+movies.jsx
+
+```jsx
+import React, { Component } from "react";
+import _ from "lodash";
+import PageNavBar from "./common/pageNavBar";
+import ListGroup from "./common/listGroup";
+import { getMovies } from "../services/fakeMovieService";
+import { getGenres } from "../services/fakeGenreService";
+import { paginate } from "../utils/paginate";
+import MoviesTable from "./moviesTable";
+
+class Movies extends Component {
+  state = {
+    movies: [],
+    genres: [],
+    currentPage: 1,
+    pageSize: 4,
+    selectedGenre: "",
+    sortColumn: { path: "title", order: "asc" }
+  };
+
+  componentDidMount() {
+    const genres = [{ _id: "", name: "All Genres" }, ...getGenres()];
+    this.setState({ movies: getMovies(), genres: genres });
+  }
+
+  summaryMovies() {
+    if (this.state.movies.length === 0)
+      return <p>There are no movies in the database.</p>;
+
+    return <p>Showing {this.state.movies.length} movies in the database.</p>;
+  }
+
+  handleDelete = movieId => {
+    const movies = this.state.movies.filter(movie => movie._id !== movieId);
+    this.setState({ movies });
+  };
+
+  handlePageChange = page => {
+    this.setState({ currentPage: page });
+  };
+
+  handleGenreSelect = genre => {
+    this.setState({ selectedGenre: genre, currentPage: 1 });
+  };
+
+  handleSort = sortColumn => {
+    this.setState({ sortColumn });
+  };
+
+  getPageData = () => {
+    const {
+      pageSize,
+      currentPage,
+      movies: allMovies,
+      selectedGenre,
+      sortColumn
+    } = this.state;
+
+    const filtered =
+      selectedGenre && selectedGenre._id
+        ? allMovies.filter(m => m.genre._id === selectedGenre._id)
+        : allMovies;
+
+    const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
+
+    const movies = paginate(sorted, currentPage, pageSize);
+
+    return { totalCount: filtered.length, data: movies };
+  };
+
+  render() {
+    const {
+      pageSize,
+      currentPage,
+      genres,
+      selectedGenre,
+      sortColumn
+    } = this.state;
+
+    const { totalCount, data: movies } = this.getPageData();
+
+    return (
+      <div className="row">
+        <div className="col-3">
+          <ListGroup
+            items={genres}
+            selectedGenre={selectedGenre}
+            onItemSelect={this.handleGenreSelect}
+          />
+        </div>
+        <div className="col">
+          <p>Showing {totalCount} movies in the databases.</p>
+          <MoviesTable
+            movies={movies}
+            sortColumn={sortColumn}
+            onDelete={this.handleDelete}
+            onSort={this.handleSort}
+          />
+          <PageNavBar
+            itemsCount={totalCount}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={this.handlePageChange}
+          />
+        </div>
+      </div>
+    );
+  }
+}
+
+export default Movies;
+```
+
