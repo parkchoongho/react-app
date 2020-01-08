@@ -198,3 +198,101 @@ class App extends Component {
 export default App;
 ```
 
+### Route Parameters
+
+App.js
+
+```javascript
+import React, { Component } from "react";
+import { Route, Switch } from "react-router-dom";
+import NavBar from "./components/navbar";
+import Products from "./components/products";
+import Posts from "./components/posts";
+import Home from "./components/home";
+import Dashboard from "./components/admin/dashboard";
+import ProductDetails from "./components/productDetails";
+import NotFound from "./components/notFound";
+import "./App.css";
+
+class App extends Component {
+  render() {
+    return (
+      <div>
+        <NavBar />
+        <div className="content">
+          <Switch>
+            <Route path="/products/:id" component={ProductDetails} />
+            <Route
+              path="/products"
+              render={props => <Products sortBy="newest" {...props} />}
+            />
+            <Route path="/posts" component={Posts} />
+            <Route path="/admin" component={Dashboard} />
+            <Route path="/" component={Home} />
+          </Switch>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+productDetails.jsx
+
+```jsx
+import React, { Component } from "react";
+
+class ProductDetails extends Component {
+  handleSave = () => {
+    // Navigate to /products
+  };
+
+  render() {
+    return (
+      <div>
+        <h1>Product Details - {this.props.match.params.id} </h1>
+        <button onClick={this.handleSave}>Save</button>
+      </div>
+    );
+  }
+}
+
+export default ProductDetails;
+```
+
+products.jsx
+
+```jsx
+import React, { Component } from "react";
+import { Link } from "react-router-dom";
+
+class Products extends Component {
+  state = {
+    products: [
+      { id: 1, name: "Product 1" },
+      { id: 2, name: "Product 2" },
+      { id: 3, name: "Product 3" }
+    ]
+  };
+
+  render() {
+    return (
+      <div>
+        <h1>Products</h1>
+        <ul>
+          {this.state.products.map(product => (
+            <li key={product.id}>
+              <Link to={`/products/${product.id}`}>{product.name}</Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+}
+
+export default Products;
+```
+
