@@ -418,3 +418,31 @@ class App extends Component {
 export default App;
 ```
 
+### Programmatic Navigation
+
+productDetails.jsx
+
+```jsx
+import React, { Component } from "react";
+
+class ProductDetails extends Component {
+  handleSave = () => {
+    // Navigate to /products
+    this.props.history.push("/products");
+    this.props.history.replace("/products");
+  };
+
+  render() {
+    return (
+      <div>
+        <h1>Product Details - {this.props.match.params.id} </h1>
+        <button onClick={this.handleSave}>Save</button>
+      </div>
+    );
+  }
+}
+
+export default ProductDetails;
+```
+
+push는 그 전으로 돌아갈 수 잇고 replace는 돌아갈 수 없습니다. (Login과 같은 상황에서 replace가 많이 활용됩니다.)
