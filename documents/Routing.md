@@ -446,3 +446,51 @@ export default ProductDetails;
 ```
 
 push는 그 전으로 돌아갈 수 잇고 replace는 돌아갈 수 없습니다. (Login과 같은 상황에서 replace가 많이 활용됩니다.)
+
+### Nested Routing
+
+dashboard.jsx
+
+```jsx
+import React from "react";
+import SideBar from "./sidebar";
+import Users from "./users";
+import Posts from "./posts";
+import { Route } from "react-router-dom";
+
+const Dashboard = ({ match }) => {
+  return (
+    <div>
+      <h1>Admin Dashboard</h1>
+      <SideBar />
+      <Route path="/admin/users" component={Users} />
+      <Route path="/admin/posts" component={Posts} />
+    </div>
+  );
+};
+
+export default Dashboard;
+```
+
+sidebar.jsx
+
+```jsx
+import React from "react";
+import { Link } from "react-router-dom";
+
+const SideBar = () => {
+  return (
+    <ul>
+      <li>
+        <Link to="/admin/posts">Posts</Link>
+      </li>
+      <li>
+        <Link to="/admin/users">Users</Link>
+      </li>
+    </ul>
+  );
+};
+
+export default SideBar;
+```
+
