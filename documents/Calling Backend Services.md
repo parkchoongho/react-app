@@ -909,7 +909,7 @@ class App extends Component {
     this.setState({ posts });
 
     try {
-      await http.delete(`s${config.apiEndPoint}/${post.id}`);
+      await http.delete(`${config.apiEndPoint}/${post.id}`);
     } catch (error) {
       // Expected (404: Not Found, 400: Bad Request) - Client Errors
       // - Display a specific error message
@@ -972,3 +972,61 @@ class App extends Component {
 export default App;
 ```
 
+### Logging Errors
+
+여기서는 Error를 확인할 수 있는 서비스를 소개합니다.
+
+```powershell
+PS C:\Users\User\Desktop\Programming\Section 8- Calling Backend Services\Section 8- Calling Backend Services\start\http-app> npm i @sentry/browser
+```
+
+설치 후, 각각 코드를 추가합니다.
+
+index.js
+
+```javascript
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./App";
+import registerServiceWorker from "./registerServiceWorker";
+import * as Sentry from "@sentry/browser";
+import "./index.css";
+import "bootstrap/dist/css/bootstrap.css";
+
+Sentry.init({
+  dsn: "https://9a8bf4c30f984940be00f5c3184498cc@sentry.io/1885408"
+});
+
+ReactDOM.render(<App />, document.getElementById("root"));
+registerServiceWorker();
+```
+
+httpService.js
+
+```javascript
+import axios from "axios";
+import * as Sentry from "@sentry/browser";
+import { toast } from "react-toastify";
+
+axios.interceptors.response.use(null, error => {
+  const expectedError =
+    error.response &&
+    error.response.status >= 404 &&
+    error.response.status < 500;
+
+  if (!expectedError) {
+    Sentry.captureException(error);
+    toast.error("An unexpected error occured");
+  }
+  return Promise.reject(error);
+});
+
+export default {
+  get: axios.get,
+  post: axios.post,
+  put: axios.put,
+  delete: axios.delete
+};
+```
+
+`index.js`에 작성되어 있는 dsn은 https://sentry.io 에서 받는 url입니다.
