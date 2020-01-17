@@ -1030,3 +1030,69 @@ export default {
 ```
 
 `index.js`에 작성되어 있는 dsn은 https://sentry.io 에서 받는 url입니다.
+
+### Extracting a Logger Service
+
+logService.js
+
+```javascript
+import * as Sentry from "@sentry/browser";
+
+function init() {
+  Sentry.init({
+    dsn: "https://9a8bf4c30f984940be00f5c3184498cc@sentry.io/1885408"
+  });
+}
+
+function log(error) {
+  Sentry.captureException(error);
+}
+
+export default { init, log };
+```
+
+httpService.js
+
+```javascript
+import axios from "axios";
+import { toast } from "react-toastify";
+import logger from "./logService";
+
+axios.interceptors.response.use(null, error => {
+  const expectedError =
+    error.response &&
+    error.response.status >= 404 &&
+    error.response.status < 500;
+
+  if (!expectedError) {
+    logger.log(error);
+    toast.error("An unexpected error occured");
+  }
+  return Promise.reject(error);
+});
+
+export default {
+  get: axios.get,
+  post: axios.post,
+  put: axios.put,
+  delete: axios.delete
+};
+```
+
+index.js
+
+```javascript
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./App";
+import registerServiceWorker from "./registerServiceWorker";
+import logger from "./services/logService";
+import "./index.css";
+import "bootstrap/dist/css/bootstrap.css";
+
+logger.init();
+
+ReactDOM.render(<App />, document.getElementById("root"));
+registerServiceWorker();
+```
+
