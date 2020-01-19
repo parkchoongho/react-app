@@ -1280,3 +1280,45 @@ class Movies extends Component {
 export default Movies;
 ```
 
+### Extracting a Config File
+
+config.json
+
+```json
+{
+  "apiUrl": "http://localhost:3900/api"
+}
+```
+
+genreService.js
+
+```javascript
+import http from "./httpService";
+import { apiUrl } from "../config.json";
+
+export function getGenres() {
+  return http.get(`${apiUrl}/genres`);
+}
+```
+
+movieService.js
+
+```javascript
+import http from "./httpService";
+import { apiUrl } from "../config.json";
+
+const apiEndpoint = `${apiUrl}/movies`;
+
+export async function getMovies() {
+  return http.get(apiEndpoint);
+}
+
+export function deleteMovie(movieId) {
+  return http.delete(`${apiEndpoint}/${movieId}`);
+}
+
+export function getMovie(movieId) {
+  return http.get(`${apiEndpoint}/${movieId}`);
+}
+```
+
