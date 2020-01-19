@@ -1096,3 +1096,187 @@ ReactDOM.render(<App />, document.getElementById("root"));
 registerServiceWorker();
 ```
 
+### Replacing FakeGenreService and FakeMovieService
+
+genreService.js
+
+```javascript
+import http from "./httpService";
+
+export function getGenres() {
+  return http.get("http://localhost:3900/api/genres");
+}
+```
+
+movieService.js
+
+```javascript
+import http from "./httpService";
+
+const apiEndpoint = "http://localhost:3900/api/movies";
+
+export async function getMovies() {
+  return http.get(apiEndpoint);
+}
+
+export function deleteMovie(movieId) {
+  return http.delete(`${apiEndpoint}/${movieId}`);
+}
+
+export function getMovie(movieId) {
+  return http.get(`${apiEndpoint}/${movieId}`);
+}
+```
+
+movies.jsx
+
+```jsx
+import React, { Component } from "react";
+import _ from "lodash";
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
+import PageNavBar from "./common/pageNavBar";
+import ListGroup from "./common/listGroup";
+import { getMovies, deleteMovie } from "../services/movieService";
+import { getGenres } from "../services/genreService";
+import { paginate } from "../utils/paginate";
+import MoviesTable from "./moviesTable";
+import SearchBox from "./common/searchBox";
+
+class Movies extends Component {
+  state = {
+    movies: [],
+    genres: [],
+    currentPage: 1,
+    pageSize: 4,
+    selectedGenre: null,
+    sortColumn: { path: "title", order: "asc" },
+    searchQuery: ""
+  };
+
+  async componentDidMount() {
+    try {
+      const { data } = await getGenres();
+      const genres = [{ _id: "", name: "All Genres" }, ...data];
+
+      const { data: movies } = await getMovies();
+      this.setState({ movies, genres });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  summaryMovies() {
+    if (this.state.movies.length === 0)
+      return <p>There are no movies in the database.</p>;
+
+    return <p>Showing {this.state.movies.length} movies in the database.</p>;
+  }
+
+  handleDelete = async movieId => {
+    const originalMovies = this.state.movies;
+    const movies = originalMovies.filter(movie => movie._id !== movieId);
+    this.setState({ movies });
+
+    try {
+      await deleteMovie(movieId);
+    } catch (error) {
+      if (error.response && error.response.status === 404)
+        toast.error("This movie has already been deleted");
+      this.setState({ movies: originalMovies });
+    }
+  };
+
+  handlePageChange = page => {
+    this.setState({ currentPage: page });
+  };
+
+  handleGenreSelect = genre => {
+    this.setState({ selectedGenre: genre, currentPage: 1, searchQuery: "" });
+  };
+
+  handleSearch = query => {
+    this.setState({ searchQuery: query, selectedGenre: null, currentPage: 1 });
+  };
+
+  handleSort = sortColumn => {
+    this.setState({ sortColumn });
+  };
+
+  getPageData = () => {
+    const {
+      pageSize,
+      currentPage,
+      movies: allMovies,
+      selectedGenre,
+      sortColumn,
+      searchQuery
+    } = this.state;
+
+    const filtered = searchQuery
+      ? allMovies.filter(m =>
+          m.title.toLowerCase().startsWith(searchQuery.toLowerCase())
+        )
+      : selectedGenre && selectedGenre._id
+      ? allMovies.filter(m => m.genre._id === selectedGenre._id)
+      : allMovies;
+
+    const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
+
+    const movies = paginate(sorted, currentPage, pageSize);
+
+    return { totalCount: filtered.length, data: movies };
+  };
+
+  render() {
+    const {
+      pageSize,
+      currentPage,
+      genres,
+      selectedGenre,
+      sortColumn,
+      searchQuery
+    } = this.state;
+
+    const { totalCount, data: movies } = this.getPageData();
+
+    return (
+      <div className="row">
+        <div className="col-3">
+          <ListGroup
+            items={genres}
+            selectedGenre={selectedGenre}
+            onItemSelect={this.handleGenreSelect}
+          />
+        </div>
+        <div className="col">
+          <Link
+            to="/movies/new"
+            className="btn btn-primary"
+            style={{ marginBottom: 20 }}
+          >
+            New Movie
+          </Link>
+          <p>Showing {totalCount} movies in the databases.</p>
+          <SearchBox value={searchQuery} onChange={this.handleSearch} />
+          <MoviesTable
+            movies={movies}
+            sortColumn={sortColumn}
+            onDelete={this.handleDelete}
+            onSort={this.handleSort}
+          />
+          <PageNavBar
+            itemsCount={totalCount}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={this.handlePageChange}
+          />
+        </div>
+      </div>
+    );
+  }
+}
+
+export default Movies;
+```
+
