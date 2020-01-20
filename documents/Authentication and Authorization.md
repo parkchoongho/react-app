@@ -129,3 +129,63 @@ class RegisterForm extends Form {
 export default RegisterForm;
 ```
 
+### Submitting the Login Form
+
+authService.js
+
+```javascript
+import http from "./httpService";
+import { apiUrl } from "../config.json";
+
+const apiEndpoint = `${apiUrl}/auth`;
+
+export function login(email, password) {
+  return http.post(apiEndpoint, { email, password });
+}
+```
+
+loginForm.jsx
+
+```jsx
+import React from "react";
+import Joi from "joi-browser";
+import Form from "./common/form";
+import { login } from "../services/authService";
+
+class LoginForm extends Form {
+  state = {
+    data: { username: "", password: "" },
+    errors: {}
+  };
+
+  schema = {
+    username: Joi.string()
+      .required()
+      .label("Username"),
+    password: Joi.string()
+      .required()
+      .label("Password")
+  };
+
+  doSubmit = async () => {
+    const { data } = this.state;
+    await login(data.username, data.password);
+  };
+
+  render() {
+    return (
+      <div>
+        <h1>Login</h1>
+        <form onSubmit={this.handleSubmit}>
+          {this.renderInput("username", "Username")}
+          {this.renderInput("password", "Password", "password")}
+          {this.renderButton("Login")}
+        </form>
+      </div>
+    );
+  }
+}
+
+export default LoginForm;
+```
+
