@@ -301,3 +301,67 @@ class LoginForm extends Form {
 export default LoginForm;
 ```
 
+### Logging in the User upon Registration
+
+loginForm.jsx
+
+```jsx
+import React from "react";
+import Joi from "joi-browser";
+import Form from "./common/form";
+import { register } from "../services/userService";
+
+class RegisterForm extends Form {
+  state = {
+    data: { username: "", password: "", nickname: "" },
+    errors: {}
+  };
+
+  schema = {
+    username: Joi.string()
+      .email()
+      .required()
+      .label("Username"),
+    password: Joi.string()
+      .min(5)
+      .required()
+      .label("Password"),
+    nickname: Joi.string()
+      .required()
+      .label("Nickname")
+  };
+
+  doSubmit = async () => {
+    try {
+      const { data } = this.state;
+      const response = await register(data);
+
+      localStorage.setItem("token", response.headers["x-auth-token"]);
+      this.props.history.push("/");
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        const errors = { ...this.state.errors };
+        errors.username = error.response.data;
+        this.setState({ errors });
+      }
+    }
+  };
+
+  render() {
+    return (
+      <div>
+        <h1>Register</h1>
+        <form onSubmit={this.handleSubmit}>
+          {this.renderInput("username", "Username")}
+          {this.renderInput("password", "Password", "password")}
+          {this.renderInput("nickname", "Nickname")}
+          {this.renderButton("Register")}
+        </form>
+      </div>
+    );
+  }
+}
+
+export default RegisterForm;
+```
+
