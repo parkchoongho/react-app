@@ -686,3 +686,81 @@ class App extends Component {
 export default App;
 ```
 
+### Calling Protected API Endpoints
+
+httpService.js
+
+```javascript
+import axios from "axios";
+import { toast } from "react-toastify";
+import logger from "./logService";
+import { getJwt } from "./authService";
+
+axios.defaults.headers.common["x-auth-token"] = getJwt();
+
+axios.interceptors.response.use(null, error => {
+  const expectedError =
+    error.response &&
+    error.response.status >= 404 &&
+    error.response.status < 500;
+
+  if (!expectedError) {
+    logger.log(error);
+    toast.error("An unexpected error occured");
+  }
+  return Promise.reject(error);
+});
+
+export default {
+  get: axios.get,
+  post: axios.post,
+  put: axios.put,
+  delete: axios.delete
+};
+```
+
+authService.js
+
+```javascript
+import jwtDecode from "jwt-decode";
+import http from "./httpService";
+import { apiUrl } from "../config.json";
+
+const tokenKey = "token";
+const apiEndpoint = `${apiUrl}/auth`;
+
+export async function login(email, password) {
+  const { data: jwt } = await http.post(apiEndpoint, { email, password });
+  localStorage.setItem(tokenKey, jwt);
+}
+
+export function loginWithJwt(jwt) {
+  localStorage.setItem(tokenKey, jwt);
+}
+
+export function logout() {
+  localStorage.removeItem(tokenKey);
+}
+
+export function getCurrentUser() {
+  try {
+    const jwt = localStorage.getItem(tokenKey);
+    return jwtDecode(jwt);
+  } catch (error) {
+    return null;
+  }
+}
+
+export function getJwt() {
+  return localStorage.getItem("token");
+}
+
+export default {
+  login,
+  logout,
+  getCurrentUser,
+  getJwt,
+  loginWithJwt
+};
+```
+
