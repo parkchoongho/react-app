@@ -424,3 +424,185 @@ class App extends Component {
 export default App;
 ```
 
+### Displaying the Current User on NavBar
+
+navBar.jsx
+
+```jsx
+import React from "react";
+import { Link, NavLink } from "react-router-dom";
+
+const NavBar = ({ user }) => {
+  return (
+    <nav className="navbar navbar-expand-lg navbar-light bg-light">
+      <Link className="navbar-brand" to="/">
+        Vidly
+      </Link>
+      <button
+        className="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span className="navbar-toggler-icon"></span>
+      </button>
+
+      <div className="collapse navbar-collapse" id="navbarNavAltMarkUp">
+        <div className="navbar-nav">
+          <NavLink className="nav-item nav-link" to="/movies">
+            Movies
+          </NavLink>
+          <NavLink className="nav-item nav-link" to="/customers">
+            Customers
+          </NavLink>
+          <NavLink className="nav-item nav-link" to="/rentals">
+            Rentals
+          </NavLink>
+          {!user && (
+            <React.Fragment>
+              <NavLink className="nav-item nav-link" to="/login">
+                Login
+              </NavLink>
+              <NavLink className="nav-item nav-link" to="/register">
+                Register
+              </NavLink>
+            </React.Fragment>
+          )}
+          {user && (
+            <React.Fragment>
+              <NavLink className="nav-item nav-link" to="/profile">
+                {user.name}
+              </NavLink>
+              <NavLink className="nav-item nav-link" to="/logout">
+                Logout
+              </NavLink>
+            </React.Fragment>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default NavBar;
+```
+
+loginForm.jsx
+
+```jsx
+import React from "react";
+import Joi from "joi-browser";
+import Form from "./common/form";
+import { login } from "../services/authService";
+
+class LoginForm extends Form {
+  state = {
+    data: { username: "", password: "" },
+    errors: {}
+  };
+
+  schema = {
+    username: Joi.string()
+      .required()
+      .label("Username"),
+    password: Joi.string()
+      .required()
+      .label("Password")
+  };
+
+  doSubmit = async () => {
+    try {
+      const { data } = this.state;
+      const { data: jwt } = await login(data.username, data.password);
+      localStorage.setItem("token", jwt);
+      window.location = "/";
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        const errors = { ...this.state.errors };
+        errors.username = error.response.data;
+        this.setState({ errors });
+      }
+    }
+  };
+
+  render() {
+    return (
+      <div>
+        <h1>Login</h1>
+        <form onSubmit={this.handleSubmit}>
+          {this.renderInput("username", "Username")}
+          {this.renderInput("password", "Password", "password")}
+          {this.renderButton("Login")}
+        </form>
+      </div>
+    );
+  }
+}
+
+export default LoginForm;
+```
+
+registerForm.jsx
+
+```jsx
+import React from "react";
+import Joi from "joi-browser";
+import Form from "./common/form";
+import { register } from "../services/userService";
+
+class RegisterForm extends Form {
+  state = {
+    data: { username: "", password: "", nickname: "" },
+    errors: {}
+  };
+
+  schema = {
+    username: Joi.string()
+      .email()
+      .required()
+      .label("Username"),
+    password: Joi.string()
+      .min(5)
+      .required()
+      .label("Password"),
+    nickname: Joi.string()
+      .required()
+      .label("Nickname")
+  };
+
+  doSubmit = async () => {
+    try {
+      const response = await register(this.state.data);
+
+      localStorage.setItem("token", response.headers["x-auth-token"]);
+      window.location = "/";
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        const errors = { ...this.state.errors };
+        errors.username = error.response.data;
+        this.setState({ errors });
+      }
+    }
+  };
+
+  render() {
+    return (
+      <div>
+        <h1>Register</h1>
+        <form onSubmit={this.handleSubmit}>
+          {this.renderInput("username", "Username")}
+          {this.renderInput("password", "Password", "password")}
+          {this.renderInput("nickname", "Nickname")}
+          {this.renderButton("Register")}
+        </form>
+      </div>
+    );
+  }
+}
+
+export default RegisterForm;
+```
+
