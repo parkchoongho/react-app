@@ -845,3 +845,219 @@ export default {
 };
 ```
 
+### Showing or Hiding Elements based on the User
+
+App.js
+
+```javascript
+import React, { Component } from "react";
+import { Route, Switch, Redirect } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import auth from "./services/authService";
+import NavBar from "./components/navBar";
+import Movies from "./components/movies";
+import Customers from "./components/customers";
+import Rentals from "./components/rentals";
+import MovieForm from "./components/movieForm";
+import NotFound from "./components/notFound";
+import LoginForm from "./components/loginForm";
+import RegisterForm from "./components/registerForm";
+import Logout from "./components/logout";
+
+import "react-toastify/dist/ReactToastify.css";
+import "./App.css";
+
+class App extends Component {
+  state = {};
+
+  componentDidMount() {
+    const user = auth.getCurrentUser();
+    this.setState({ user });
+  }
+
+  render() {
+    return (
+      <React.Fragment>
+        <ToastContainer />
+        <NavBar user={this.state.user} />
+        <main className="container">
+          <Switch>
+            <Route path="/login" component={LoginForm} />
+            <Route path="/logout" component={Logout} />
+            <Route path="/register" component={RegisterForm} />
+            <Route path="/movies/:id" component={MovieForm} />
+            <Route path="/movies/new" component={MovieForm} />
+            <Route
+              path="/movies"
+              render={props => <Movies {...props} user={this.state.user} />}
+            />
+            <Route path="/customers" component={Customers} />
+            <Route path="/rentals" component={Rentals} />
+            <Route path="/not-found" component={NotFound} />
+            <Redirect from="/" exact to="/movies" />
+            <Redirect to="/not-found" />
+          </Switch>
+        </main>
+      </React.Fragment>
+    );
+  }
+}
+
+export default App;
+```
+
+movies.jsx
+
+```jsx
+import React, { Component } from "react";
+import _ from "lodash";
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
+import PageNavBar from "./common/pageNavBar";
+import ListGroup from "./common/listGroup";
+import { getMovies, deleteMovie } from "../services/movieService";
+import { getGenres } from "../services/genreService";
+import { paginate } from "../utils/paginate";
+import MoviesTable from "./moviesTable";
+import SearchBox from "./common/searchBox";
+
+class Movies extends Component {
+  state = {
+    movies: [],
+    genres: [],
+    currentPage: 1,
+    pageSize: 4,
+    selectedGenre: null,
+    sortColumn: { path: "title", order: "asc" },
+    searchQuery: ""
+  };
+
+  async componentDidMount() {
+    try {
+      const { data } = await getGenres();
+      const genres = [{ _id: "", name: "All Genres" }, ...data];
+
+      const { data: movies } = await getMovies();
+      this.setState({ movies, genres });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  summaryMovies() {
+    if (this.state.movies.length === 0)
+      return <p>There are no movies in the database.</p>;
+
+    return <p>Showing {this.state.movies.length} movies in the database.</p>;
+  }
+
+  handleDelete = async movieId => {
+    const originalMovies = this.state.movies;
+    const movies = originalMovies.filter(movie => movie._id !== movieId);
+    this.setState({ movies });
+
+    try {
+      await deleteMovie(movieId);
+    } catch (error) {
+      if (error.response && error.response.status === 404)
+        toast.error("This movie has already been deleted");
+      this.setState({ movies: originalMovies });
+    }
+  };
+
+  handlePageChange = page => {
+    this.setState({ currentPage: page });
+  };
+
+  handleGenreSelect = genre => {
+    this.setState({ selectedGenre: genre, currentPage: 1, searchQuery: "" });
+  };
+
+  handleSearch = query => {
+    this.setState({ searchQuery: query, selectedGenre: null, currentPage: 1 });
+  };
+
+  handleSort = sortColumn => {
+    this.setState({ sortColumn });
+  };
+
+  getPageData = () => {
+    const {
+      pageSize,
+      currentPage,
+      movies: allMovies,
+      selectedGenre,
+      sortColumn,
+      searchQuery
+    } = this.state;
+
+    const filtered = searchQuery
+      ? allMovies.filter(m =>
+          m.title.toLowerCase().startsWith(searchQuery.toLowerCase())
+        )
+      : selectedGenre && selectedGenre._id
+      ? allMovies.filter(m => m.genre._id === selectedGenre._id)
+      : allMovies;
+
+    const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
+
+    const movies = paginate(sorted, currentPage, pageSize);
+
+    return { totalCount: filtered.length, data: movies };
+  };
+
+  render() {
+    const {
+      pageSize,
+      currentPage,
+      genres,
+      selectedGenre,
+      sortColumn,
+      searchQuery
+    } = this.state;
+    const { user } = this.props;
+
+    const { totalCount, data: movies } = this.getPageData();
+
+    return (
+      <div className="row">
+        <div className="col-3">
+          <ListGroup
+            items={genres}
+            selectedGenre={selectedGenre}
+            onItemSelect={this.handleGenreSelect}
+          />
+        </div>
+        <div className="col">
+          {user && (
+            <Link
+              to="/movies/new"
+              className="btn btn-primary"
+              style={{ marginBottom: 20 }}
+            >
+              New Movie
+            </Link>
+          )}
+          <p>Showing {totalCount} movies in the databases.</p>
+          <SearchBox value={searchQuery} onChange={this.handleSearch} />
+          <MoviesTable
+            movies={movies}
+            sortColumn={sortColumn}
+            onDelete={this.handleDelete}
+            onSort={this.handleSort}
+          />
+          <PageNavBar
+            itemsCount={totalCount}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={this.handlePageChange}
+          />
+        </div>
+      </div>
+    );
+  }
+}
+
+export default Movies;
+```
+
