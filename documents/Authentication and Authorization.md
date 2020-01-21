@@ -1212,3 +1212,155 @@ class App extends Component {
 export default App;
 ```
 
+### Redirecting after Login
+
+protectedRoute.jsx
+
+```jsx
+import React from "react";
+import auth from "../../services/authService";
+import { Route, Redirect } from "react-router-dom";
+
+const ProtectedRoute = ({ path, component: Component, render, ...rest }) => {
+  return (
+    <Route
+      {...rest}
+      render={props => {
+        if (!auth.getCurrentUser())
+          return (
+            <Redirect
+              to={{
+                pathname: "/login",
+                state: { from: props.location }
+              }}
+            />
+          );
+        return Component ? <Component {...props} /> : render(props);
+      }}
+    />
+  );
+};
+
+export default ProtectedRoute;
+```
+
+loginForm.jsx
+
+```jsx
+import React from "react";
+import Joi from "joi-browser";
+import Form from "./common/form";
+import auth from "../services/authService";
+import { Redirect } from "react-router-dom";
+
+class LoginForm extends Form {
+  state = {
+    data: { username: "", password: "" },
+    errors: {}
+  };
+
+  schema = {
+    username: Joi.string()
+      .required()
+      .label("Username"),
+    password: Joi.string()
+      .required()
+      .label("Password")
+  };
+
+  doSubmit = async () => {
+    try {
+      const { data } = this.state;
+      await auth.login(data.username, data.password);
+      const { state } = this.props.location;
+      window.location = state ? state.from.pathname : "/";
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        const errors = { ...this.state.errors };
+        errors.username = error.response.data;
+        this.setState({ errors });
+      }
+    }
+  };
+
+  render() {
+    if (auth.getCurrentUser()) return <Redirect to="/" />;
+    return (
+      <div>
+        <h1>Login</h1>
+        <form onSubmit={this.handleSubmit}>
+          {this.renderInput("username", "Username")}
+          {this.renderInput("password", "Password", "password")}
+          {this.renderButton("Login")}
+        </form>
+      </div>
+    );
+  }
+}
+
+export default LoginForm;
+```
+
+registerForm.jsx
+
+```jsx
+import React from "react";
+import Joi from "joi-browser";
+import { Redirect } from "react-router-dom";
+import Form from "./common/form";
+import { register } from "../services/userService";
+import auth from "../services/authService";
+
+class RegisterForm extends Form {
+  state = {
+    data: { username: "", password: "", nickname: "" },
+    errors: {}
+  };
+
+  schema = {
+    username: Joi.string()
+      .email()
+      .required()
+      .label("Username"),
+    password: Joi.string()
+      .min(5)
+      .required()
+      .label("Password"),
+    nickname: Joi.string()
+      .required()
+      .label("Nickname")
+  };
+
+  doSubmit = async () => {
+    try {
+      const response = await register(this.state.data);
+      auth.loginWithJwt(response.headers["x-auth-token"]);
+      window.location = "/";
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        const errors = { ...this.state.errors };
+        errors.username = error.response.data;
+        this.setState({ errors });
+      }
+    }
+  };
+
+  render() {
+    if (auth.getCurrentUser()) return <Redirect to="/" />;
+    return (
+      <div>
+        <h1>Register</h1>
+        <form onSubmit={this.handleSubmit}>
+          {this.renderInput("username", "Username")}
+          {this.renderInput("password", "Password", "password")}
+          {this.renderInput("nickname", "Nickname")}
+          {this.renderButton("Register")}
+        </form>
+      </div>
+    );
+  }
+}
+
+export default RegisterForm;
+```
+
